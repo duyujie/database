@@ -1,0 +1,3 @@
+expdp system/Cossuite_123 DUMPFILE=0220mal.DMP DIRECTORY=Dmpdir schemas=mal_appuser
+
+impdp system/Cossuite_123 directory=Dmpdir DUMPFILE=0220mal.DMP schemas=mal_appuser REMAP_SCHEMA=mal_appuser:ind_appuser table_exists_action=replace

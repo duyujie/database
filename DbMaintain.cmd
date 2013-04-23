@@ -1,0 +1,1 @@
+sqlplus sys/Cossuite_123 as sysdba @e:\oracle11g\db_maintain.sql
