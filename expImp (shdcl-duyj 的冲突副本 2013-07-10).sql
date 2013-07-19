@@ -1,4 +1,3 @@
---以sys账号创建DMP目录并授权
 Create Directory Dmpdir As 'E:\Backup\Database'
 /
 grant read,write on Directory Dmpdir to system

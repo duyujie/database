@@ -33,5 +33,3 @@ Select USERNAME,server, COUNT(*) From v$session GROUP BY USERNAME,server;
 #----ADDED BY TNSLSNR---
 LOGGING_LISTENER = OFF
 #--------------------------------------------
-
-

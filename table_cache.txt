@@ -1,0 +1,45 @@
+将公共表数据常驻oracle数据缓存中
+
+1、首先评估公共数据表数据大小，决定db_keep_cache_size大小
+alter system set db_keep_cache_size=100M scope=both;
+
+2、修改表格属性，让它可以常驻内存
+alter table tbtest storage(buffer_pool keep);
+select table_name,tablespace_name,cache from user_tables;(此时cache为YES）
+
+3、如果需要取消该属性，执行下面语句
+alter table tbtest storage(buffer_pool default) ;
+
+
+（create table 表名 (字段) storage (buffer_pool keep); --建表时把表缓存到KEEP中
+alter table 表名 storage(buffer_pool keep);--把已存在的表缓存至KEEP中
+create table 表名（字段..） storage (buffer_pool keep) cache;--创建缓存表
+ALTER TABLE Table_Name STORAGE ( BUFFER_POOL KEEP) ;
+oracle的db_buffer_pool由三部分组成：
+buffer_pool_defualt
+buffer_pool_keep
+buffer_pool_recycle
+如果要把表钉死在内存中，也就是把表钉在keep区。
+相关的命令为：
+alter table ..... storage(buffer_pool keep);
+这句命令把表示表如果缓存的话是缓存在keep区。
+可以通过语句：
+select table_name from dba_tables where buffer_pool='KEEP';查询到改表是放在keep区中的。
+但是不意味着表已经被缓存了。
+下面的语句把表缓存：
+alter table .... cache;
+可以通过
+select table_name from dba_ tables where rtrim(cache)='Y'
+查询到该表已经被缓存了。
+加入到keep区的表不是说不能被移出内存，不过是比较不容易移出内存。
+也可以手工来移出内存，命令如下：
+alter table ... nocache;
+实例
+--select *from sms_accounts
+--alter table sms_accounts storage(BUFFER_POOL KEEP)
+--alter table ECHOBASE20110515 storage(BUFFER_POOL KEEP)
+--select table_name from dba_tables where buffer_pool='KEEP'
+--alter table sms_accounts cache
+--alter table ECHOBASE20110515 cache
+--select table_name,cache from user_tables where table_name='ECHOBASE20110515'
+--select table_name,cache from user_tables where table_name='SMS_ACCOUNTS'
