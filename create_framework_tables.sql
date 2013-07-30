@@ -6,7 +6,7 @@
  create table SYSTEM.GLOBAL_CARRIERS  (
    GLOBAL_CARRIERS_UUID CHAR(32)                        not null,
    CARRIER_CODE         VARCHAR2(10),
-   CARRIER_NAME_KEY     VARCHAR2(20),
+   CARRIER_NAME_KEY     VARCHAR2(50),
    CARRIER_SERVER_URL   VARCHAR2(200),
    BL_PREFIX            VARCHAR2(6),
    SCAC_CDE             VARCHAR2(4),
