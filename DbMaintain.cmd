@@ -1,1 +1,1 @@
-sqlplus sys/Cossuite_123 as sysdba @e:\oracle11g\db_maintain.sql
+sqlplus sys/password@//atxism02:1521/cossuite as sysdba @e:\oracle11g\db_maintain.sql
