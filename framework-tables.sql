@@ -1,6 +1,6 @@
 /*==============================================================*/
 /* DBMS name:      ORACLE Version 11g                           */
-/* Created on:     2013/7/30 10:57:06                           */
+/* Created on:     2013/11/13 22:58:21                          */
 /*==============================================================*/
 
 
@@ -25,6 +25,9 @@ alter table FRM_FUNCTION
 alter table FRM_FUNCTION_MENU
    drop constraint FK_FRM_FUNC_MENU_PARENT;
 
+alter table FRM_MASTER_DATA
+   drop constraint FK_FRM_MDT_LISTENER;
+
 alter table FRM_RELEASE_VER_FILE
    drop constraint FK_FRM_RELE_REFERENCE_FRM_RELE;
 
@@ -41,8 +44,6 @@ alter table GLOBAL_SERVICE_NAMESPACE
    drop constraint FK_GLOBAL_S_REFERENCE_GLOBAL_C;
 
 drop view V_DATA_ACCESS_UNIT;
-
-drop view V_DATA_ACCESS_USER;
 
 drop view V_FRM_SYSTEM_ID;
 
@@ -164,6 +165,22 @@ drop index IDX_MAIL_SUBJECT;
 
 drop table FRM_MAIL cascade constraints;
 
+drop index IDX_FRM_MDT_LISTENER;
+
+drop index IDX_FRM_MDT_POLLED;
+
+drop index IDX_FRM_MDT_SEQ;
+
+drop index IDX_FRM_MDT_UUID;
+
+drop index IDX_FRM_MDT_CLASS;
+
+drop table FRM_MASTER_DATA cascade constraints;
+
+drop index IDX_FRM_MDT_LISTENER_ID;
+
+drop table FRM_MASTER_DATA_LISTENER cascade constraints;
+
 drop index FRM_R_VER_F_NAME;
 
 drop table FRM_RELEASE_VER_FILE cascade constraints;
@@ -196,6 +213,8 @@ drop index FRM_SUBSYSTEM_UK1;
 
 drop table FRM_SUBSYSTEM cascade constraints;
 
+drop index IDX_FRM_SVC_EVT_SEQ;
+
 drop index IDX_FRM_SVC_EVT_STATUS;
 
 drop index IDX_FRM_SVC_EVT_DT;
@@ -220,6 +239,10 @@ drop index IDX_FRM_SYNONYMS;
 
 drop table FRM_SYNONYMS cascade constraints;
 
+drop index IDX_USER_PROF_UID;
+
+drop table FRM_USER_PROFILE cascade constraints;
+
 drop index IDX_GLOB_CARR_CDE;
 
 drop table GLOBAL_CARRIERS cascade constraints;
@@ -240,7 +263,6 @@ drop index IDX_ORG_USER_USERORG;
 
 drop table SSO_ORG_USER cascade constraints;
 
- 
 /*==============================================================*/
 /* Table: DATA_ACCESS_ABANDON                                   */
 /*==============================================================*/
@@ -347,6 +369,7 @@ create table DATA_ACCESS_USER
    MASTER_USER_ID       VARCHAR2(16),
    ROLE_CODES           CLOB,
    GROUP_CODES          CLOB,
+   READONLY             NUMERIC(1),
    REC_UPD_DTE          TIMESTAMP            default SYSTIMESTAMP not null,
    REC_UPD_USER_ID      VARCHAR2(16),
    constraint PK_DATA_ACCESS_USER primary key (USER_ID)
@@ -795,6 +818,78 @@ create index IDX_MAIL_UPD_DT on FRM_MAIL (
 );
 
 /*==============================================================*/
+/* Table: FRM_MASTER_DATA                                       */
+/*==============================================================*/
+create table FRM_MASTER_DATA 
+(
+   FRM_MASTER_DATA_UUID CHAR(32)             not null,
+   FRM_MASTER_DATA_LISTENER_UUID CHAR(32),
+   ENTITY_CLASS         VARCHAR2(1000)       not null,
+   ENTITY_UUID          CHAR(32)             not null,
+   EVENT_SEQ            NUMERIC(22)          not null,
+   DATA_STATUS          VARCHAR2(10)         not null,
+   POLLED               NUMERIC(1)           default 0 not null,
+   POLL_STATUS          VARCHAR2(10),
+   POLL_REMARK          NVARCHAR2(1000),
+   REC_UPD_DT           TIMESTAMP            default SYSTIMESTAMP not null,
+   constraint PK_FRM_MASTER_DATA primary key (FRM_MASTER_DATA_UUID)
+);
+
+/*==============================================================*/
+/* Index: IDX_FRM_MDT_CLASS                                     */
+/*==============================================================*/
+create index IDX_FRM_MDT_CLASS on FRM_MASTER_DATA (
+   ENTITY_CLASS ASC
+);
+
+/*==============================================================*/
+/* Index: IDX_FRM_MDT_UUID                                      */
+/*==============================================================*/
+create index IDX_FRM_MDT_UUID on FRM_MASTER_DATA (
+   ENTITY_UUID ASC
+);
+
+/*==============================================================*/
+/* Index: IDX_FRM_MDT_SEQ                                       */
+/*==============================================================*/
+create index IDX_FRM_MDT_SEQ on FRM_MASTER_DATA (
+   EVENT_SEQ ASC
+);
+
+/*==============================================================*/
+/* Index: IDX_FRM_MDT_POLLED                                    */
+/*==============================================================*/
+create index IDX_FRM_MDT_POLLED on FRM_MASTER_DATA (
+   POLLED ASC
+);
+
+/*==============================================================*/
+/* Index: IDX_FRM_MDT_LISTENER                                  */
+/*==============================================================*/
+create index IDX_FRM_MDT_LISTENER on FRM_MASTER_DATA (
+   FRM_MASTER_DATA_LISTENER_UUID ASC
+);
+
+/*==============================================================*/
+/* Table: FRM_MASTER_DATA_LISTENER                              */
+/*==============================================================*/
+create table FRM_MASTER_DATA_LISTENER 
+(
+   FRM_MASTER_DATA_LISTENER_UUID CHAR(32)             not null,
+   LISTENER_ID          VARCHAR2(200)        not null,
+   ENTITY_CLASSES       CLOB,
+   REC_UPD_DT           TIMESTAMP            default SYSTIMESTAMP not null,
+   constraint PK_FRM_MASTER_DATA_LISTENER primary key (FRM_MASTER_DATA_LISTENER_UUID)
+);
+
+/*==============================================================*/
+/* Index: IDX_FRM_MDT_LISTENER_ID                               */
+/*==============================================================*/
+create unique index IDX_FRM_MDT_LISTENER_ID on FRM_MASTER_DATA_LISTENER (
+   LISTENER_ID ASC
+);
+
+/*==============================================================*/
 /* Table: FRM_RELEASE_VER_FILE                                  */
 /*==============================================================*/
 create table FRM_RELEASE_VER_FILE 
@@ -852,6 +947,7 @@ create table FRM_SPIDER_CHANNEL
    CHANNEL_NAME         NVARCHAR2(500)       not null,
    CHANNEL_URL          VARCHAR2(2048)       not null,
    CHANNEL_SRC          VARCHAR2(2048),
+   CHANNEL_CHARSET      VARCHAR2(10),
    CHANNEL_PAGE_PATTERN VARCHAR2(1024),
    CRAWL_STATUS         VARCHAR2(10),
    REC_UPD_DT           TIMESTAMP            default SYSTIMESTAMP not null,
@@ -971,10 +1067,12 @@ create unique index FRM_SUBSYSTEM_UK1 on FRM_SUBSYSTEM (
 create table FRM_SVC_EVENT 
 (
    FRM_SVC_EVENT_UUID   CHAR(32)             not null,
-   EVENT_NAME           varchar2(50)         not null,
+   EVENT_NAME           varchar2(200)        not null,
    EVENT_USER_ID        VARCHAR2(16),
    EVENT_DATA_XML       CLOB                 not null,
    EVENT_STATUS         varchar2(20)         not null,
+   EVENT_SEQ            NUMERIC(22)          default 0,
+   EVENT_SOURCE         varchar2(200),
    REC_UPD_DT           TIMESTAMP            default SYSTIMESTAMP not null,
    constraint PK_FRM_SVC_EVENT primary key (FRM_SVC_EVENT_UUID)
 );
@@ -1005,6 +1103,13 @@ create index IDX_FRM_SVC_EVT_DT on FRM_SVC_EVENT (
 /*==============================================================*/
 create index IDX_FRM_SVC_EVT_STATUS on FRM_SVC_EVENT (
    EVENT_STATUS ASC
+);
+
+/*==============================================================*/
+/* Index: IDX_FRM_SVC_EVT_SEQ                                   */
+/*==============================================================*/
+create index IDX_FRM_SVC_EVT_SEQ on FRM_SVC_EVENT (
+   EVENT_SEQ ASC
 );
 
 /*==============================================================*/
@@ -1070,6 +1175,27 @@ create unique index IDX_FRM_SYNONYMS on FRM_SYNONYMS (
 );
 
 /*==============================================================*/
+/* Table: FRM_USER_PROFILE                                      */
+/*==============================================================*/
+create table FRM_USER_PROFILE 
+(
+   FRM_USER_PROFILE_UUID CHAR(32)             not null,
+   USER_ID              VARCHAR2(16)         not null,
+   PROFILE_TYPE         VARCHAR2(20)         not null,
+   USER_PROFILE         CLOB                 not null,
+   REC_UPD_DT           TIMESTAMP            default SYSTIMESTAMP not null,
+   constraint PK_FRM_USER_PROFILE primary key (FRM_USER_PROFILE_UUID)
+);
+
+/*==============================================================*/
+/* Index: IDX_USER_PROF_UID                                     */
+/*==============================================================*/
+create unique index IDX_USER_PROF_UID on FRM_USER_PROFILE (
+   USER_ID ASC,
+   PROFILE_TYPE ASC
+);
+
+/*==============================================================*/
 /* Table: GLOBAL_CARRIERS                                       */
 /*==============================================================*/
 create table GLOBAL_CARRIERS 
@@ -1081,7 +1207,7 @@ create table GLOBAL_CARRIERS
    BL_PREFIX            VARCHAR2(6),
    SCAC_CDE             VARCHAR2(4),
    REC_UPD_DTE          TIMESTAMP            default SYSTIMESTAMP not null,
-   HTTPS_PORT           VARCHAR2(4)          default '8443',
+   HTTPS_PORT           VARCHAR2(4)          default '8181',
    constraint PK_GLOBAL_CARRIERS primary key (GLOBAL_CARRIERS_UUID),
    constraint AK_KEY_NAME_GLOBAL_CARRIERS unique (CARRIER_NAME_KEY)
 );
@@ -1197,7 +1323,8 @@ create unique index IDX_ORG_USER_USERORG on SSO_ORG_USER (
 /*==============================================================*/
 create or replace view V_DATA_ACCESS_UNIT as
 
-  SELECT NULL AS DATA_ACCESS_UNIT_UUID,
+     SELECT 
+  SYS_GUID() AS DATA_ACCESS_UNIT_UUID,
     NULL               AS DATA_ACCESS_UNIT_PARENT,
     NULL       AS DATA_ACCESS_CODE,
     NULL       AS DATA_ACCESS_NAME,
@@ -1206,10 +1333,10 @@ create or replace view V_DATA_ACCESS_UNIT as
   SYSDATE AS  REC_UPD_DT,
   NULL  REC_UPD_USER_ID
   FROM DUAL
+    where 1=2
+
 
 with read only;
-
-
 
 /*==============================================================*/
 /* View: V_FRM_SYSTEM_ID                                        */
@@ -1261,6 +1388,10 @@ alter table FRM_FUNCTION_MENU
    add constraint FK_FRM_FUNC_MENU_PARENT foreign key (PARENT_FRM_FUNCTION_MENU_UUID)
       references FRM_FUNCTION_MENU (FRM_FUNCTION_MENU_UUID);
 
+alter table FRM_MASTER_DATA
+   add constraint FK_FRM_MDT_LISTENER foreign key (FRM_MASTER_DATA_LISTENER_UUID)
+      references FRM_MASTER_DATA_LISTENER (FRM_MASTER_DATA_LISTENER_UUID);
+
 alter table FRM_RELEASE_VER_FILE
    add constraint FK_FRM_RELE_REFERENCE_FRM_RELE foreign key (FRM_RELEASE_VER_ROOT_UUID)
       references FRM_RELEASE_VER_ROOT (FRM_RELEASE_VER_ROOT_UUID);
@@ -1281,3 +1412,13 @@ alter table GLOBAL_SERVICE_NAMESPACE
    add constraint FK_GLOBAL_S_REFERENCE_GLOBAL_C foreign key (GLOBAL_CARRIERS_UUID)
       references GLOBAL_CARRIERS (GLOBAL_CARRIERS_UUID);
 
+
+
+SET DEFINE OFF;
+--Insert into  GLOBAL_CARRIERS (GLOBAL_CARRIERS_UUID,CARRIER_CODE,CARRIER_NAME_KEY,CARRIER_SERVER_URL,REC_UPD_DTE,BL_PREFIX,SCAC_CDE,HTTPS_PORT) values ('c71a36e2e6d54dc286fa90816d2ef37e','COS','carrier.COS.local','http://localhost:8080/Framework4sWeb/hessian/',to_timestamp('26-10月-11 02.55.21.790000000 下午','DD-MON-RR HH.MI.SS.FF AM'),'COS','COS','8181'); 
+
+
+Insert into DATA_ACCESS_USER (USER_ID,REC_UPD_DTE,REC_UPD_USER_ID,MASTER_USER_ID,READONLY) values ('system',to_timestamp('13-9月 -13 12.31.16.028000000 上午','DD-MON-RR HH.MI.SS.FF AM'),'system',null,0);
+
+
+commit;
